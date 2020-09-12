@@ -1,4 +1,4 @@
-2020 USA State Presidential Polls
+2020 USA State Presidential Election Polls
 ==========================================
 
 #### Overview
