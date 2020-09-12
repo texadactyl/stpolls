@@ -25,7 +25,7 @@ None required.
 ```
 cd <to-high-level-folder>
 fetch.sh # Get the latest CSV file.
-load.sh # From the CSV file, initialize a new database and load it.
+load.sh # Initialize a new database and load it from the CSV file.
 process.sh # Perform analysis and produce plots.
 ```
 
