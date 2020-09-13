@@ -115,7 +115,7 @@ if TRACING:
     utl.logger('DEBUG stpolls_main_analyze: STATE_LIST={}'.format(STATE_LIST))
 
 csvfd = open(PATH_OUT_CSV, 'w')
-csvfd.write('state, Last Poll,, Dem EVs, GOP EVs,, Dem Pop EVs, GOP Pop EVs, TBD Pop EVs,, Dem Ave Pct, GOP Ave Pct, TBD Ave Pct,, Dem Score, GOP Score, TBD Score,, Gaining, Losing\n')
+csvfd.write('state, Last Poll,, Dem EVs, GOP EVs, TBD EVs,, Dem Pop EVs, GOP Pop EVs, TBD Pop EVs,, Dem Ave Pct, GOP Ave Pct, TBD Ave Pct,, Dem Score, GOP Score, TBD Score,, Gaining, Losing\n')
 
 # For each state, analyze.
 dem_total_ev = 0
@@ -162,15 +162,16 @@ for state, ev in STATE_LIST:
     gop_total_score += stc.gop_score
     tbd_total_score += stc.tbd_score
     tbd_total_pev += stc.gop_pev
-    csvfd.write('{},{},,{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{},{}\n'
+    csvfd.write('{},{},,{:.1f},{:.1f},,,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{},{}\n'
           .format(state, stc.last, stc.dem_ev, stc.gop_ev, stc.dem_pev, stc.gop_pev, stc.tbd_pev, stc.dem_ave, stc.gop_ave, stc.tbd_ave, stc.dem_score, stc.gop_score, stc.tbd_score, stc.gaining, stc.losing))
     csv_row_count += 1
 
 # Close database.
 db_handle.db_close()
 csvfd.write('\n')
-csvfd.write('TOTALS,,,=sum(d2:d{row}),=sum(e2:e{row}),,=sum(g2:g{row}),=sum(h2:h{row}),=sum(i2:i{row}),,,,,,=sum(O2:O{row}),=sum(P2:P{row}),=sum(Q2:Q{row})\n'
-            .format(row=csv_row_count))
+tbd_total_ev = 538 - dem_total_ev - gop_total_ev
+csvfd.write('TOTALS,,,=sum(d2:d{row}),=sum(e2:e{row}),{tbd_ev},,=sum(h2:h{row}),=sum(i2:i{row}),=sum(j2:j{row}),,,,,,=sum(p2:p{row}),=sum(q2:q{row}),=sum(r2:r{row})\n'
+            .format(row=csv_row_count, tbd_ev=tbd_total_ev))
 csvfd.close()
 utl.logger('Number of qualifying states: {}'.format(csv_row_count - 1))
 utl.logger('Number of states with out of date polls: {}'.format(len(too_old)))
