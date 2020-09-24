@@ -115,20 +115,16 @@ if TRACING:
     utl.logger('DEBUG stpolls_main_analyze: STATE_LIST={}'.format(STATE_LIST))
 
 csvfd = open(PATH_OUT_CSV, 'w')
-csvfd.write('state, Last Poll,, Dem EVs, GOP EVs, TBD EVs,, Dem Pop EVs, GOP Pop EVs, TBD Pop EVs,, Dem Ave Pct, GOP Ave Pct, TBD Ave Pct,, Dem Score, GOP Score, TBD Score,, Gaining, Losing\n')
+csvfd.write('state, Last Poll,, Dem EVs, GOP EVs, TBD EVs,, Dem Pop EVs, GOP Pop EVs, '
+            + 'TBD Pop EVs,, Dem Ave Pct, GOP Ave Pct, TBD Ave Pct,, Dem Score, '
+            + 'GOP Score, TBD Score,, Gaining, Losing\n')
 
 # For each state, analyze.
 dem_total_ev = 0
-dem_total_pev = 0
-dem_total_score = 0
 gop_total_ev = 0
-gop_total_pev = 0
-gop_total_score = 0
-tbd_total_score = 0
-tbd_total_pev = 0
 now_yday = utl.now2yday()
 csv_row_count = 1
-insuff = []
+insuff_data = []
 too_old = []
 for state, ev in STATE_LIST:
     ROW_LIST = db_handle.db_get_state_poll_records(state)
@@ -138,9 +134,9 @@ for state, ev in STATE_LIST:
     if TRACING:
         utl.logger("Fetched {} rows for STATE: {}".format(ROW_COUNT, state))
     if ROW_COUNT < 3:
-        insuff.append(state)
+        insuff_data.append(state)
         if TRACING:
-            utl.logger("Insufficient data available for STATE: {}".format(state))
+            utl.logger("insuff_dataicient data available for STATE: {}".format(state))
         continue
     last_3 = [ROW_LIST[-3], ROW_LIST[-2], ROW_LIST[-1]]
     # Each row: end_yday, ev, dem%, gop%)
@@ -155,27 +151,26 @@ for state, ev in STATE_LIST:
     stc = look_at(ev, last_3)
     stc.last = utl.yday2str(last_3[2][0])
     dem_total_ev += stc.dem_ev
-    dem_total_pev += stc.dem_pev
-    dem_total_score += stc.dem_score
     gop_total_ev += stc.gop_ev
-    gop_total_pev += stc.gop_pev
-    gop_total_score += stc.gop_score
-    tbd_total_score += stc.tbd_score
-    tbd_total_pev += stc.gop_pev
-    csvfd.write('{},{},,{:.1f},{:.1f},,,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f},,{},{}\n'
-          .format(state, stc.last, stc.dem_ev, stc.gop_ev, stc.dem_pev, stc.gop_pev, stc.tbd_pev, stc.dem_ave, stc.gop_ave, stc.tbd_ave, stc.dem_score, stc.gop_score, stc.tbd_score, stc.gaining, stc.losing))
+    fmt = '{},{},,{:.1f},{:.1f},,,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f}' \
+        + ',,{:.1f},{:.1f},{:.1f},,{},{}\n'
+    csvfd.write(fmt
+          .format(state, stc.last, stc.dem_ev, stc.gop_ev, stc.dem_pev, stc.gop_pev,
+                  stc.tbd_pev, stc.dem_ave, stc.gop_ave, stc.tbd_ave, stc.dem_score, 
+                  stc.gop_score, stc.tbd_score, stc.gaining, stc.losing))
     csv_row_count += 1
 
 # Close database.
 db_handle.db_close()
 csvfd.write('\n')
 tbd_total_ev = 538 - dem_total_ev - gop_total_ev
-csvfd.write('TOTALS,,,=sum(d2:d{row}),=sum(e2:e{row}),{tbd_ev},,=sum(h2:h{row}),=sum(i2:i{row}),=sum(j2:j{row}),,,,,,=sum(p2:p{row}),=sum(q2:q{row}),=sum(r2:r{row})\n'
-            .format(row=csv_row_count, tbd_ev=tbd_total_ev))
+fmt = 'TOTALS,,,=sum(d2:d{row}),=sum(e2:e{row}),{tbd_ev},,=sum(h2:h{row}),=sum(i2:i{row})' \
+        + ',=sum(j2:j{row}),,,,,,=sum(p2:p{row}),=sum(q2:q{row}),=sum(r2:r{row})\n'
+csvfd.write(fmt.format(row=csv_row_count, tbd_ev=tbd_total_ev))
 csvfd.close()
 utl.logger('Number of qualifying states: {}'.format(csv_row_count - 1))
-utl.logger('Number of states with out of date polls: {}'.format(len(too_old)))
-utl.logger('Number of states with insufficient poll data: {}'.format(len(insuff)))
+utl.logger('States ({}) with out of date polls: {}'.format(len(too_old), too_old))
+utl.logger('States ({}) with insufficient poll data: {}'.format(len(insuff_data), insuff_data))
 utl.logger('Poll age threshold used: {} days'.format(AGE_THRESHOLD))
 utl.logger('Difference threshold between Dem & GOP: {} %'.format(PCT_DIFF_SIG_DIGS))
 utl.logger("stpolls_main_analyze: End")

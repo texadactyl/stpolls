@@ -6,11 +6,10 @@ stpolls Database Load Program
 
 import os.path
 import sys
-from time import strftime, localtime
 
 import stpolls_utilities as utl
 import stpolls_db_api as db_api
-from stpolls_data_defs import DATA_DIR, DB_PATH, DEBUGGING
+from stpolls_data_defs import DATA_DIR, DB_PATH, DB_PATH_LAST, DEBUGGING
 
 
 def show_help():
@@ -43,9 +42,12 @@ if not os.path.exists(DATA_DIR):
         utl.oops("stpolls_main_load: Cannot create directory {}:\n{}".format(DATA_DIR, str(err)))
 
 # if the database file already exists, rename it
+if os.path.exists(DB_PATH_LAST):
+    os.remove(DB_PATH_LAST)
+
+# if the database file already exists, rename it
 if os.path.exists(DB_PATH):
-    NOW_STR = strftime("%Y-%m-%d_%H:%M:%S", localtime())
-    os.rename(DB_PATH, DB_PATH + "." + NOW_STR)
+    os.rename(DB_PATH, DB_PATH_LAST)
 
 # Check the Database file for usability.
 try:
