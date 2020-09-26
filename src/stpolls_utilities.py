@@ -1,5 +1,5 @@
 """
-State polling utility functions
+State Polling utility functions
 """
 import sys
 import os
@@ -17,6 +17,7 @@ FMT_DATE = "%Y-%m-%d"
 JAN1 = str(datetime.datetime.now().year) + '-01-01'
 FMT_ISO_DATE = "%Y-%m-%d"
 
+
 def logger(arg_string):
     """
     Time-stamp logger
@@ -24,12 +25,14 @@ def logger(arg_string):
     now = strftime(FMT_LOGGER_TIMESTAMP, localtime())
     print("{} {}".format(now, arg_string), flush=True)
 
+
 def oops(arg_string):
     """
     Report an error and exit to the O/S.
     """
     logger("*** Oops, " + arg_string)
     sys.exit(86)
+
 
 def yday2str(arg_yday):
     """
@@ -42,6 +45,7 @@ def yday2str(arg_yday):
         str_array.append(str(np.datetime64(JAN1) + np.timedelta64(yday - 1, 'D')))
     return str_array
 
+
 def now2yday():
     """
     Convert now to a yday
@@ -49,11 +53,13 @@ def now2yday():
     now = strftime(FMT_DATE, localtime())
     return int((np.datetime64(now) - np.datetime64(JAN1) - 1) / np.timedelta64(1, 'D'))
 
+
 def invalid_integer(arg_integer):
     """
     Return True if arg_integer is not an integer; else return False.
     """
     return bool(not isinstance(arg_integer, int))
+
 
 def getcsv(arg_file_path):
     """

@@ -1,5 +1,5 @@
 """
-PyCases Database Plot Program
+State Polling Database Plot Program
 """
 
 import sys

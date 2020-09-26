@@ -1,5 +1,5 @@
 """
-PyCases  Database Procedures
+State Polling  Database Procedures
 """
 from sqlite3 import connect, Error, IntegrityError
 import stpolls_utilities as utl
@@ -121,8 +121,7 @@ class DbApi:
     def db_connect(self, arg_db_path: str):
         """
         Connect to database
-        """
-    
+        """  
         try:
             self.DBCONN = connect(arg_db_path)
             self.DBCURSOR = self.DBCONN.cursor()
@@ -133,11 +132,9 @@ class DbApi:
     def db_init(self):
         """
         Initialize the database table.
-        """
-    
-        # Drop old tables.
+        """    
+        # Delete old database table
         try:
-            # Delete old database tables.
             self.DBCURSOR.execute("DROP TABLE IF EXISTS {}".format(data_defs.TABLE_POLL_RECORDS))
         except Error as err:
             utl.oops("db_init: one of the DROP TABLE requests failed, SQL Error:\n{}"
@@ -145,6 +142,7 @@ class DbApi:
         if DEBUGGING:
             utl.logger("DEBUG db_init: Old table dropped")
     
+        # Create/recreate table
         try:
             str_create_table = "CREATE TABLE {tn} "\
                     "({c1n} INTEGER, {c2n} INTEGER, {c3n} TEXT, {c4n} INTEGER, "\
@@ -170,20 +168,26 @@ class DbApi:
                             c2n=data_defs.COL_LIST_EV)
             if DEBUGGING:
                 utl.logger("DEBUG db_init: {}".format(str_create_table))
-            self.DBCURSOR.execute(str_create_table)
-    
+            self.DBCURSOR.execute(str_create_table)    
         except Error as err:
             utl.oops("db_init: SQL Error in setting up one of the tables:\n{}"
                      .format(str(err)))
         if DEBUGGING:
             utl.logger("DEBUG db_init: new table initialized")
     
-        str_create_index = "CREATE INDEX {} ON {} ({} ASC)"\
-                         .format(data_defs.IX_STATE_END_YDAY, data_defs.TABLE_POLL_RECORDS,
-                                 data_defs.COL_STATE)
-        self.DBCURSOR.execute(str_create_index)
+        # Create ascending index on state name
+        try:
+            str_create_index = "CREATE INDEX {} ON {} ({} ASC)"\
+                             .format(data_defs.IX_STATE_END_YDAY, data_defs.TABLE_POLL_RECORDS,
+                                     data_defs.COL_STATE)
+            self.DBCURSOR.execute(str_create_index)
+        except Error as err:
+            utl.oops("db_init: SQL CREATE INDEX Error:\n{}".format(str(err)))
+        if DEBUGGING:
+            utl.logger("DEBUG db_init: index on state name created")
+        
 
-        # Commit changes
+        # Commit all database creations/changes
         try:
             self.DBCONN.commit()
         except Error as err:
@@ -204,10 +208,11 @@ class DbApi:
             self.DBCONN.close()
             self.DBCONN = None
         except Error as err:
-            utl.logger("*** db_close: Database failed to commit or close (SQL Error):\n{}"
+            utl.oops("Database failed to commit or close (SQL Error):\n{}"
                        .format(str(err)))
             return
         except Exception as err:
-            utl.logger("*** db_close: Database failed to commit or close (Exception):\n{}"
+            utl.oops("Database failed to commit or close (Exception):\n{}"
                        .format(str(err)))
+
         utl.logger("db_close: Database closed")
