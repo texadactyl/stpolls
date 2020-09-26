@@ -1,5 +1,5 @@
 """
-PyCases Database Analysis Program
+State Polls Database Analysis Program
 """
 
 import sys
@@ -41,14 +41,14 @@ def get_score(arg_ev, arg_vect_3):
     return -1 * arg_ev
 
 
-def look_at(arg_ev, arg_vec_3):
+def get_state_calcs(arg_ev, arg_vec_3):
     '''
     Each vector: end_yday, ev, dem%, gop%)
     Report Lead and EV effect.
     Report both Dem and GOP scores.
     '''
     if TRACING:
-        utl.logger('TRACE look_at: ev={}, last 3={}'.format(arg_ev, arg_vec_3))
+        utl.logger('TRACE get_state_calcs: ev={}, last 3={}'.format(arg_ev, arg_vec_3))
     sc = StateCalcs
     tbd_vec = [100 - arg_vec_3[0][2] - arg_vec_3[0][3],
            100 - arg_vec_3[1][2] - arg_vec_3[1][3],
@@ -148,7 +148,7 @@ for state, ev in STATE_LIST:
         if TRACING:
             utl.logger("Data too old for STATE: {}".format(state))
         continue
-    stc = look_at(ev, last_3)
+    stc = get_state_calcs(ev, last_3)
     stc.last = utl.yday2str(last_3[2][0])
     dem_total_ev += stc.dem_ev
     gop_total_ev += stc.gop_ev
@@ -160,7 +160,7 @@ for state, ev in STATE_LIST:
                   stc.gop_score, stc.tbd_score, stc.gaining, stc.losing))
     csv_row_count += 1
 
-# Close database.
+# Close database and report results.
 db_handle.db_close()
 csvfd.write('\n')
 tbd_total_ev = 538 - dem_total_ev - gop_total_ev
