@@ -72,22 +72,6 @@ def get_state_calcs(arg_ev, arg_vec_3):
     sc.gop_pev = sc.gop_ave * arg_ev / 100
     sc.tbd_pev = arg_ev - sc.dem_pev - sc.gop_pev
 
-    maxie = max(sc.dem_score, sc.gop_score, sc.tbd_score)
-    if maxie == sc.dem_score:
-        sc.gaining = 'Dem'
-    elif maxie == sc.gop_score:
-        sc.gaining = 'GOP'
-    else:
-        sc.gaining = 'TBD'
-       
-    minnie = min(sc.dem_score, sc.gop_score, sc.tbd_score)
-    if minnie == sc.dem_score:
-        sc.losing = 'Dem'
-    elif minnie == sc.gop_score:
-        sc.losing = 'GOP'
-    else:
-        sc.losing = 'TBD'
-    
     return sc
 
 
@@ -117,7 +101,7 @@ if TRACING:
 csvfd = open(PATH_OUT_CSV, 'w')
 csvfd.write('state, Last Poll,, Dem EVs, GOP EVs, TBD EVs,, Dem Pop EVs, GOP Pop EVs, '
             + 'TBD Pop EVs,, Dem Ave Pct, GOP Ave Pct, TBD Ave Pct,, Dem Score, '
-            + 'GOP Score, TBD Score,, Gaining, Losing\n')
+            + 'GOP Score, TBD Score\n')
 
 # For each state, analyze.
 dem_total_ev = 0
@@ -153,11 +137,11 @@ for state, ev in STATE_LIST:
     dem_total_ev += stc.dem_ev
     gop_total_ev += stc.gop_ev
     fmt = '{},{},,{:.1f},{:.1f},,,{:.1f},{:.1f},{:.1f},,{:.1f},{:.1f},{:.1f}' \
-        + ',,{:.1f},{:.1f},{:.1f},,{},{}\n'
+        + ',,{:.1f},{:.1f},{:.1f}\n'
     csvfd.write(fmt
           .format(state, stc.last, stc.dem_ev, stc.gop_ev, stc.dem_pev, stc.gop_pev,
-                  stc.tbd_pev, stc.dem_ave, stc.gop_ave, stc.tbd_ave, stc.dem_score, 
-                  stc.gop_score, stc.tbd_score, stc.gaining, stc.losing))
+                  stc.tbd_pev, stc.dem_ave, stc.gop_ave, stc.tbd_ave, stc.dem_score,
+                  stc.gop_score, stc.tbd_score))
     csv_row_count += 1
 
 # Close database and report results.
