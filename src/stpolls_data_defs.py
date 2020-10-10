@@ -23,9 +23,10 @@ DB_FILE = "stpolls.db"
 DB_PATH = DATA_DIR + "/" + DB_FILE
 DB_PATH_LAST = DB_PATH + '.last'
 
-AGE_THRESHOLD = 124 # days, the oldest poll permitted for significance
+AGE_THRESHOLD = 62 # days, the oldest poll permitted for significance
 PATH_OUT_CSV = DATA_DIR + "/" + 'analysis.csv'
 PCT_DIFF_SIG_DIGS = 4 # % difference below which makes a Dem-GOP comparison insignificant
+MIN_POLL_COUNT = 3
 
 
 class StatePollRecord:

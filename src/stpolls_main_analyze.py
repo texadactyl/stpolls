@@ -6,7 +6,8 @@ import sys
 
 import stpolls_utilities as utl
 import stpolls_db_api as db_api
-from stpolls_data_defs import DB_PATH, StateCalcs, AGE_THRESHOLD, PATH_OUT_CSV, PCT_DIFF_SIG_DIGS
+from stpolls_data_defs import DB_PATH, StateCalcs, AGE_THRESHOLD, PATH_OUT_CSV, \
+    PCT_DIFF_SIG_DIGS, MIN_POLL_COUNT
 
 TRACING = False
 
@@ -29,7 +30,7 @@ def get_score(arg_ev, arg_vect_3):
         -2: 100% decreasing
     Then, weight the score by the number of EVs.
     '''
-    if arg_vect_3[1] == arg_vect_3[2]:
+    if abs(arg_vect_3[1] - arg_vect_3[2]) < 0.1:
         return 0
     if arg_vect_3[0] < arg_vect_3[1] < arg_vect_3[2]:
         return 2 * arg_ev
@@ -53,9 +54,14 @@ def get_state_calcs(arg_ev, arg_vec_3):
     tbd_vec = [100 - arg_vec_3[0][2] - arg_vec_3[0][3],
            100 - arg_vec_3[1][2] - arg_vec_3[1][3],
            100 - arg_vec_3[2][2] - arg_vec_3[2][3]]
+    if TRACING:
+        utl.logger('TRACE get_state_calcs: tbd_vec={}'.format(tbd_vec))
     sc.dem_score = get_score(arg_ev, [arg_vec_3[0][2], arg_vec_3[1][2], arg_vec_3[2][2]])
     sc.gop_score = get_score(arg_ev, [arg_vec_3[0][3], arg_vec_3[1][3], arg_vec_3[2][3]])
     sc.tbd_score = get_score(arg_ev, tbd_vec)
+    if TRACING:
+        utl.logger('TRACE scores: dem={}, gop={}, tbd={}'
+                   .format(sc.dem_score, sc.gop_score, sc.tbd_score))
     sc.dem_ave = (arg_vec_3[0][2] + arg_vec_3[1][2] + arg_vec_3[2][2]) / 3
     sc.gop_ave = (arg_vec_3[0][3] + arg_vec_3[1][3] + arg_vec_3[2][3]) / 3
     sc.tbd_ave = (tbd_vec[0] + tbd_vec[1] + tbd_vec[2]) / 3
@@ -65,12 +71,15 @@ def get_state_calcs(arg_ev, arg_vec_3):
     elif sc.dem_ave > sc.gop_ave:
         sc.dem_ev = arg_ev
         sc.gop_ev = 0
-    else: # arg_vec_3[2][2] < arg_vec_3[2][3]:
+    else: # sc.dem_ave < sc.gop_ave:
         sc.dem_ev = 0
         sc.gop_ev = arg_ev
     sc.dem_pev = sc.dem_ave * arg_ev / 100
     sc.gop_pev = sc.gop_ave * arg_ev / 100
     sc.tbd_pev = arg_ev - sc.dem_pev - sc.gop_pev
+    
+    if TRACING:
+        sys.exit(86)
 
     return sc
 
@@ -117,7 +126,7 @@ for state, ev in STATE_LIST:
         utl.logger("No data available for STATE: {}".format(state))
     if TRACING:
         utl.logger("Fetched {} rows for STATE: {}".format(ROW_COUNT, state))
-    if ROW_COUNT < 3:
+    if ROW_COUNT < MIN_POLL_COUNT:
         insuff_data.append(state)
         if TRACING:
             utl.logger("insuff_dataicient data available for STATE: {}".format(state))
@@ -155,6 +164,7 @@ csvfd.close()
 utl.logger('Number of qualifying states: {}'.format(csv_row_count - 1))
 utl.logger('States ({}) with out of date polls: {}'.format(len(too_old), too_old))
 utl.logger('States ({}) with insufficient poll data: {}'.format(len(insuff_data), insuff_data))
-utl.logger('Poll age threshold used: {} days'.format(AGE_THRESHOLD))
+utl.logger('Poll age threshold used: within last {} days'.format(AGE_THRESHOLD))
+utl.logger('Poll count threshold used: no less than {} polls'.format(MIN_POLL_COUNT))
 utl.logger('Difference threshold between Dem & GOP: {} %'.format(PCT_DIFF_SIG_DIGS))
 utl.logger("stpolls_main_analyze: End")
