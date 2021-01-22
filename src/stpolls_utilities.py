@@ -93,7 +93,7 @@ def getcsv(arg_file_path):
         # Get source date
         for col in wk_data_frame.itertuples():
             record = StatePollRecord()
-            # Throw out left-most pandas data frame column which is a rowid (row[0])
+            # Throw out left-most pandas data frame column which is a rowid (col[0])
             # Get region
             record.start_yday = int(col[1] - 0.5 * col[2])
             record.end_yday = col[2] + record.start_yday - 1
